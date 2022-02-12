@@ -12,11 +12,11 @@ let credentials = {
     password: process.env.DATABASE_PASSWORD,
 }
 if (process.env.NODE_ENV == 'development') {
-    credentials = {host: 'localhost',
+    credentials = {host: 'database-1.cluster-cohztkhcycfu.us-west-1.rds.amazonaws.com',
         port: 5432,
-        database: `postgres`,
-        user: `postgres`,
-        password: `password`,}
+        database: `Kwil_Registry`,
+        user: `Kwil`,
+        password: `kvmW>MGN;@8+jS`,}
 }
 const client = new Client(credentials);
 const pool = new Pool(credentials)
