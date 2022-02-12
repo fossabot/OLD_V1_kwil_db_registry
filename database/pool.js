@@ -16,7 +16,7 @@ if (process.env.NODE_ENV == 'development') {
         port: 5432,
         database: `Kwil`,
         user: `Kwil_Registry`,
-        password: `'kvmW>MGN;@8+jS`,}
+        password: `Ecclesia<Kwil`,}
 }
 const client = new Client(credentials);
 const pool = new Pool(credentials)
