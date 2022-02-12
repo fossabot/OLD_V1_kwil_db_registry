@@ -14,7 +14,7 @@ let credentials = {
 if (process.env.NODE_ENV == 'development') {
     credentials = {host: 'database-1.cluster-cohztkhcycfu.us-west-1.rds.amazonaws.com',
         port: 5432,
-        database: `Kwil_Registry`,
+        database: `database-1`,
         user: `Kwil`,
         password: `kvmW>MGN;@8+jS`,}
 }
