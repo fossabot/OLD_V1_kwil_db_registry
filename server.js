@@ -57,19 +57,19 @@ const start = async () => {
     app.post('/getEncryptedAPIKey', handler.getEncryptedAPIKey)
     app.post('/updateSecret', handler.updateSecret)
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS registry(
-            moat varchar(64) PRIMARY KEY,
-            api_key varchar NOT NULL,
-            secret varchar NOT NULL,
-            owner varchar(42) NOT NULL
-          );`)
+    await pool.query(`CREATE TABLE IF NOT EXISTS registry(
+        moat varchar(64) PRIMARY KEY,
+        api_key varchar NOT NULL,
+        secret varchar NOT NULL,
+        owner varchar(42) NOT NULL
+      );`)
 
-        await pool.query(`CREATE TABLE IF NOT EXISTS secrets(
-            id SERIAL PRIMARY KEY,
-            moat varchar(64) NOT NULL,
-            secret varchar NOT NULL,
-            timestamp bigint NOT NULL
-            );`)
+    await pool.query(`CREATE TABLE IF NOT EXISTS secrets(
+        id SERIAL PRIMARY KEY,
+        moat varchar(64) NOT NULL,
+        secret varchar NOT NULL,
+        timestamp bigint NOT NULL
+        );`)
 
     server.on('request', app);
     server.listen(process.env.NODE_PORT, function () {
