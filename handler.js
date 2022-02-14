@@ -14,8 +14,9 @@ const handler = () => {
                 const data = req.body;
                 console.log(data);
                 console.log('moat');
-                await pool.query(`INSERT INTO registry (moat, api_key, owner, secret)
-                                  VALUES ('${data.moat}', '${data.apiKey}', '${data.owner}', '${data.secret}');`)
+                const query = 'INSERT INTO registry(moat, api_key, owner, secret) VALUES ($1,$2,$3,$4);'
+                const values = [`${data.moat}`,`${data.apiKey}`,`${data.owner}`,`${data.secret}`];
+                await pool.query(query,values);
             }
             catch(e){
                 console.log(e);
@@ -28,8 +29,9 @@ const handler = () => {
                 console.log(req);
                 const data = req.body;
                 console.log(data);
-                await pool.query(`INSERT INTO secrets (moat, secret, timestamp)
-                                  VALUES ('${data.moat}', '${data.secret}', '${data.timestamp}');`)
+                const query = 'INSERT INTO secrets (moat, secret, timestamp) VALUES ($1,$2,$3);'
+                const values = [`${data.moat}`,`${data.secret}`,`${data.timestamp}`];
+                await pool.query(query,values);
             }
             catch(e){
                 console.log(e);
@@ -38,21 +40,20 @@ const handler = () => {
         }
 
         async getMoats(req, res) {
-            let result;
             try {
                 console.log(req);
                 const data = req.body;
                 console.log(data);
-                result = await pool.query(`SELECT *
-                                                 FROM registry
-                                                 WHERE owner = '${data.owner}';`)
+                const query = 'SELECT * FROM registry WHERE owner = $1;'
+                const values = [`${data.owner}`];
+                const result = await pool.query(query,values);
                 console.log(result.rows);
+                res.send(result.rows);
             }
             catch(e){
                 console.log(e);
                 res.end();
             }
-            res.send(result.rows);
         }
 
         async getSecrets(req, res) {
@@ -60,9 +61,9 @@ const handler = () => {
                 console.log(req);
                 const data = req.body;
                 console.log(data);
-                const result = await pool.query(`SELECT secret, timestamp
-                                                 FROM secrets
-                                                 WHERE moat='${data.moat}';`)
+                const query = 'SELECT secret, timestamp FROM secrets WHERE moat=$1;'
+                const values = [`${data.moat}`];
+                const result = await pool.query(query,values);
                 console.log(result.rows);
                 res.send(result.rows);
             }catch(e){
@@ -76,9 +77,9 @@ const handler = () => {
                 console.log(req);
                 const data = req.body;
                 console.log(data);
-                const result = await pool.query(`SELECT api_key
-                                                 FROM registry
-                                                 WHERE moat = '${data.moat}';`)
+                const query = 'SELECT api_key FROM registry WHERE moat = $1;'
+                const values = [`${data.moat}`];
+                const result = await pool.query(query,values);
                 console.log(result.rows);
                 res.send(result.rows);
             }catch(e){
@@ -93,9 +94,9 @@ const handler = () => {
                 console.log(req);
                 const data = req.body;
                 console.log(data);
-                const encryptedAPI = await pool.query(`SELECT api_key, owner
-                                                       FROM registry
-                                                       WHERE moat = '${data.moat}';`)
+                const query = 'SELECT api_key, owner FROM registry WHERE moat = $1;'
+                const values = [`${data.moat}`]
+                const encryptedAPI = await pool.query(query,values);
                 console.log(encryptedAPI.rows);
                 if (encryptedAPI.rows.length > 0) {
                     const address = web3.eth.accounts.recover(encryptedAPI.rows[0].api_key, data.sig)
