@@ -6,6 +6,9 @@ const cors = require('cors');
 let server = require('http').createServer();
 const handlerFunc = require('./handler.js')
 const handler = handlerFunc.handler()
+const fundingPools = require('./fundingPools.json')
+const Web3 = require('web3')
+const abi = require('./abi.json')
 
 const start = async () => {
 
@@ -56,12 +59,40 @@ const start = async () => {
     app.post('/getSecrets', handler.getSecrets)
     app.post('/getEncryptedAPIKey', handler.getEncryptedAPIKey)
     app.post('/updateSecret', handler.updateSecret)
+    app.post('/getFundingPools', handler.getFundingPools)
+
+    const options = {
+        // Enable auto reconnection
+        reconnect: {
+            auto: true,
+            delay: 30000, // ms
+            maxAttempts: 1000,
+            onTimeout: false
+        }
+    };
+
+    //const endpoint = "wss://goerli-light.eth.linkpool.io/ws"
+    const wsGoerli = new Web3.providers.WebsocketProvider('wss://eth-goerli.alchemyapi.io/v2/7ugsfAn1P2ei1mI5Kj48L6kXourgUeTL', options)
+    const web3Goerli = new Web3(wsGoerli)
+    const contractAddrGoerli = "0xAE25691A0A156949002ECac0e331df04B60a2d4a"
+    const contractGoerli = new web3Goerli.eth.Contract(abi.abi, contractAddrGoerli)
+
+    //const endpointPolygon = "wss://rpc-mainnet.matic.network"wss://mainnet.infura.io/ws wss://polygon-mainnet.g.alchemy.com/v2/rmHrTewIiEOvqSby9ApxY3nnhTOVP4G-
+    /*const wsPolygon = new Web3.providers.WebsocketProvider('wss://polygon-mainnet.g.alchemy.com/v2/rmHrTewIiEOvqSby9ApxY3nnhTOVP4G-', options)
+    const web3Polygon = new Web3(wsPolygon)
+    const contractAddrPolygon = "0xb0c780AdCC7C4316bCAea764e39472a01a43C866"
+    const contractPolygon = new web3Polygon.eth.Contract(abi.abi, contractAddrPolygon)
+
+    const wsEth = new Web3.providers.WebsocketProvider('wss://eth-mainnet.alchemyapi.io/v2/y3Z3J_eAb86DAynqgmQ8b43_9HP2Z5zy', options)
+    const web3Eth = new Web3(wsEth)
+    const contractAddrEth = "0xb0c780AdCC7C4316bCAea764e39472a01a43C866"
+    const contractEth = new web3Eth.eth.Contract(abi.abi, contractAddrEth)*/
 
     await pool.query(`CREATE TABLE IF NOT EXISTS registry(
         moat varchar(64) PRIMARY KEY,
         api_key varchar NOT NULL,
         secret varchar NOT NULL,
-        owner varchar(42) NOT NULL
+        owner varchar(200) NOT NULL
       );`)
 
     await pool.query(`CREATE TABLE IF NOT EXISTS secrets(
@@ -70,6 +101,74 @@ const start = async () => {
         secret varchar NOT NULL,
         timestamp bigint NOT NULL
         );`)
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS funding_pools(
+        id varchar(260) PRIMARY KEY,
+        pool_name varchar(250),
+        creator varchar(200) NOT NULL,
+        validator varchar(200) NOT NULL,
+        moat varchar(64) NOT NULL,
+        blockchain varchar(30) NOT NULL
+      );`)
+
+    /*await pool.query(`CREATE TABLE IF NOT EXISTS goerli(
+        pool_name varchar(250) PRIMARY KEY,
+        creator varchar(200) NOT NULL,
+        validator varchar(200) NOT NULL
+      );`)
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS polygon(
+        pool_name varchar(250) PRIMARY KEY,
+        creator varchar(200) NOT NULL,
+        validator varchar(200) NOT NULL
+      );`)*/
+
+    //Goerli listener
+    contractGoerli.events.PoolCreated({})
+        .on('data', async function(event){
+            try {
+                console.log(event.returnValues);
+                const id = event.returnValues.poolName + '_goerli';
+                const query = 'INSERT INTO funding_pools (id,pool_name, creator, validator,moat,blockchain) VALUES ($1,$2,$3,$4,$5,$6);'
+                const values = [`${id}`,`${event.returnValues.pool}`,`${event.returnValues.creator}`,`${event.returnValues.validator}`,`${event.returnValues.moatName}`,`goerli`];
+                await pool.query(query, values);
+            }catch(e){
+                console.log(e)
+            }
+        })
+        .on('error', console.error);
+
+    //CHANGE VARIABLES FOR THESE FUNCTION TO MATCH
+
+    //Polygon listener
+    /*contractPolygon.events.MoatCreated({})
+        .on('data', async function(event){
+            try {
+                console.log(event.returnValues);
+                const id = event.returnValues.moatName + '_polygon';
+                const query = 'INSERT INTO funding_pools (id,pool_name, creator, validator) VALUES ($1,$2,$3,$4);'
+                const values = [`${id}`,`${event.returnValues.moatName}`,`${event.returnValues.creator}`,`${event.returnValues.validator}`];
+                await pool.query(query, values);
+            }catch(e){
+                console.log(e)
+            }
+        })
+        .on('error', console.error);
+
+    //Ethereum mainnet listener
+    contractEth.events.MoatCreated({})
+        .on('data', async function(event){
+            try {
+                console.log(event.returnValues);
+                const id = event.returnValues.moatName + '_ethereum';
+                const query = 'INSERT INTO funding_pools (id,pool_name, creator, validator) VALUES ($1,$2,$3,$4);'
+                const values = [`${id}`,`${event.returnValues.moatName}`,`${event.returnValues.creator}`,`${event.returnValues.validator}`];
+                await pool.query(query, values);
+            }catch(e){
+                console.log(e)
+            }
+        })
+        .on('error', console.error);*/
 
     server.on('request', app);
     server.listen(process.env.NODE_PORT, function () {

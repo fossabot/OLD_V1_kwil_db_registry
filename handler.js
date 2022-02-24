@@ -56,6 +56,23 @@ const handler = () => {
             }
         }
 
+        async getFundingPools(req, res) {
+            try {
+                console.log(req);
+                const data = req.body;
+                console.log(data);
+                const query = 'SELECT * FROM funding_pools WHERE moat = $1;'
+                const values = [`${data.moat}`];
+                const result = await pool.query(query,values);
+                console.log(result.rows);
+                res.send(result.rows);
+            }
+            catch(e){
+                console.log(e);
+                res.end();
+            }
+        }
+
         async getSecrets(req, res) {
             try {
                 console.log(req);
