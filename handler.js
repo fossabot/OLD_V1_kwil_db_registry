@@ -5,9 +5,7 @@ const Web3 = require('web3');
 const handler = () => {
     class Handler {
         constructor() {
-
         }
-
         async addMoat(req, res) {
             try {
                 console.log(req);
@@ -23,7 +21,6 @@ const handler = () => {
             }
             res.end();
         }
-
         async addSecret(req, res) {
             try {
                 console.log(req);
@@ -55,7 +52,6 @@ const handler = () => {
                 res.end();
             }
         }
-
         async getFundingPools(req, res) {
             try {
                 console.log(req);
@@ -88,7 +84,6 @@ const handler = () => {
                 res.end();
             }
         }
-
         async getEncryptedAPIKey(req, res) {
             try {
                 console.log(req);
@@ -137,11 +132,7 @@ const handler = () => {
             res.send(result.rows);*/
             res.end();
         }
-
-
     }
-
     return new Handler()
 }
-
 module.exports = {handler}
